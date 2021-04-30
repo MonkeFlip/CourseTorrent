@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include <vector>
 #include <netinet/in.h>
+#include <boost/asio.hpp>
 
 class peerInfo
 {
@@ -66,19 +67,19 @@ int findEndPos(char*, int);
 
 void printHash(const unsigned char*);
 
-peerInfo* parseResponseInfo(std::string,peerInfo*);
+peerInfo* parseResponseInfo(std::string,peerInfo*,int&);
 std::string getAddress(char*, int);
 void getHash(char*, unsigned char*, int,std::ifstream*);
 std::string urlEncode(const unsigned char*);
 size_t writeFunction(void*, size_t,size_t, std::string*);
-peerInfo* makeGetRequest(std::string,peerInfo*);
-void makeHandshake(peerInfo*);
+peerInfo* makeGetRequest(std::string,peerInfo*,int&);
+void makeHandshake(peerInfo*,int,const unsigned char[]);
 
 
 int main() {
     using namespace std;
-    //vector<peerInfo> allPeers;
     peerInfo* allPeers=NULL;
+    int peersQuantity=0;
     string completeUrl;
     ifstream file;
     //file.open("bm.torrent", ifstream::binary);
@@ -116,7 +117,9 @@ int main() {
 
     cout<<"Request url: "<<completeUrl<<endl;
 
-    allPeers=makeGetRequest(completeUrl,allPeers);
+    allPeers=makeGetRequest(completeUrl,allPeers,peersQuantity);
+    //cout<<"Quantity of peers: "<<peersQuantity<<endl;
+    makeHandshake(allPeers,peersQuantity,hash);
     file.close();
     }
 
@@ -180,7 +183,7 @@ size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
     return size * nmemb;
 }
 
-peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers)
+peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& peersQuantity)
 {
     int pos=-1;
     unsigned char ip[4]={NULL};
@@ -201,7 +204,7 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers)
     }
     std::cout<<"Position is: "<<pos<<std::endl;
     char mem;
-    int peersQuantity=(responseString.size()-pos)/6;
+    peersQuantity=(responseString.size()-pos)/6;
     allPeers=new peerInfo[peersQuantity];
     //allPeers=(peerInfo*)malloc(sizeof(peerInfo)*peersQuantity);
     for(int iteration=0;iteration<peersQuantity;iteration++)
@@ -262,7 +265,7 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers)
     return allPeers;
 }
 
-peerInfo* makeGetRequest(std::string url,peerInfo* allPeers)
+peerInfo* makeGetRequest(std::string url,peerInfo* allPeers,int& peersQuantity)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     auto curl=curl_easy_init();
@@ -296,7 +299,7 @@ peerInfo* makeGetRequest(std::string url,peerInfo* allPeers)
         std::cout<<"Response string: "<<std::endl;
         std::cout<<response_string<<std::endl;
         //std::cout<<"Header string: "<<header_string<<std::endl;
-        allPeers=parseResponseInfo(response_string,allPeers);
+        allPeers=parseResponseInfo(response_string,allPeers,peersQuantity);
     }
     return allPeers;
 }
@@ -371,12 +374,74 @@ int findEndPos(char* content,int fileLength)
     return result;
 }
 
-void makeHandshake(peerInfo* allPeers)
+void makeHandshake(peerInfo* allPeers,int peersQuantity,const unsigned char info_hash[])
 {
-    sockaddr_in *addr;
-    addr->sin_family=AF_INET;
-    addr->sin_port=port;
-    addr->sin_addr=ip;
-    socket(AF_INET,SOCK_STREAM,0);
-    connect(SOCK_STREAM,)
+//    hostent* localHost;
+//    char* localIP;
+
+    //localHost = gethostbyname("93.125.107.18");
+    //localIP = inet_ntoa (*(struct in_addr *)*localHost->h_addr_list);
+    //std::cout<<localIP<<std::endl;
+    //////////////////////////////////////////////////////////
+    int sockfd;//file descriptor for socket
+    const int handshakeSize=1+19+8+20+20;//size of message for handshake
+    char responseBuffer[handshakeSize]={NULL};
+    char handshakeBuffer[handshakeSize]={NULL};
+    char peer_id[20];
+    for(int i=0;i<20;i++)
+    {
+        peer_id[i]='A'+i;
+    }
+    //handshake format: 1 byte for protocol Length+19 bytes of protocol Name+8 reserved bytes
+    // +20 bytes of info_hash
+    // +20 bytes peer identifier
+    int protocolLength=19;
+    const std::string protocolName="BitTorrent protocol";
+    //info_hash
+    //generate peer identifier(read at wiki)
+    //unite all these variables into one buffer and write it at socket
+
+    handshakeBuffer[0]=1;
+    for(int i=0;i<19;i++)
+    {
+        handshakeBuffer[1+i]=protocolName[i];
+    }
+    for(int i=0;i<8;i++)
+    {
+        handshakeBuffer[20+i]=0;
+    }
+    for(int i=0;i<20;i++)
+    {
+        handshakeBuffer[28+i]=info_hash[i];
+        handshakeBuffer[48+i]=peer_id[i];
+    }
+    //////////////////////////////
+    addrinfo hints;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+    hints.ai_flags = AI_NUMERICSERV;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+    ////////////////////////////////
+    hostent *host;
+    sockaddr_in addr;
+    addr.sin_family=AF_INET;
+    //addr.sin_port= htons(allPeers[0].getPortNumber());
+    addr.sin_port= htons(6881);
+    addr.sin_addr.s_addr= inet_addr("93.125.107.17");
+    //addr.sin_addr.s_addr= inet_addr((const char*)(allPeers[0].getIp()));
+    sockfd=socket(AF_INET,SOCK_DGRAM,0);
+    if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
+    {
+        write(sockfd, handshakeBuffer, handshakeSize);
+        read(sockfd, responseBuffer, handshakeSize);
+        close(sockfd);
+    }
+    else
+    {
+        std::cout<<"Connection failed"<<std::endl;
+    }
 }
