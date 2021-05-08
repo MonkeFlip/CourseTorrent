@@ -1,0 +1,15 @@
+#pragma once
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <fstream>
+#include <iostream>
+#include <sys/socket.h>
+#include <openssl/sha.h>
+#include <curl/curl.h>
+#include <vector>
+#include <netinet/in.h>
+#include <boost/asio.hpp>
+#include <sys/time.h>
+#include "TorrentFile.h"
+#include "PeerManager.h"

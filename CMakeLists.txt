@@ -3,7 +3,7 @@ project(CourseTorrent)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(CourseTorrent main.cpp)
+add_executable(CourseTorrent main.cpp TorrentFile.cpp headers.h TorrentFile.h PeerManager.h PeerManager.cpp)
 
 target_link_libraries(CourseTorrent  -lssl)
 target_link_libraries(CourseTorrent  -lcrypto)

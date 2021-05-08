@@ -1,79 +1,15 @@
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include <fstream>
-#include <iostream>
-#include <sys/socket.h>
-#include <openssl/sha.h>
-#include <curl/curl.h>
-#include <vector>
-#include <netinet/in.h>
-#include <boost/asio.hpp>
+#include "headers.h"
 
-class peerInfo
-{
-private:
-    unsigned char *ip;
-    unsigned short int portNumber;
-public:
-    //constructors
-    peerInfo()
-    {
-        ip=(unsigned char*)malloc(7);//4 bytes for ip and 3 for dots
-        portNumber=0;//port number consists of 2 bytes
-    }
-    peerInfo(unsigned  char* ipBuffer, unsigned  short int portNumberBuffer)
-    {
-        for(int i=1;i<=4;i++)
-        {
-            this->ip[i*2-2]=ipBuffer[i-1];
-            if(i<4)
-                this->ip[i*2-1]='.';
-        }
-        this->portNumber=portNumberBuffer;
-    }
-    //destructor
-    ~peerInfo()
-    {
-        delete this->ip;
-    }
-    //getters and setters
-    unsigned char* getIp()
-    {
-        return this->ip;
-    }
-    unsigned short int getPortNumber()
-    {
-        return this->portNumber;
-    }
 
-    void setIp(unsigned  char* ipBuffer)
-    {
-        for(int i=1;i<=4;i++)
-        {
-            this->ip[i*2-2]=ipBuffer[i-1];
-            if(i<4)
-                this->ip[i*2-1]='.';
-        }
-    }
-
-    void setPortNumber(unsigned short int portNumberBuffer) {
-        this->portNumber=portNumberBuffer;
-    }
-};
-int findStartPos(char*,int);
-
-int findEndPos(char*, int);
 
 void printHash(const unsigned char*);
 
 peerInfo* parseResponseInfo(std::string,peerInfo*,int&);
-std::string getAddress(char*, int);
-void getHash(char*, unsigned char*, int,std::ifstream*);
+
 std::string urlEncode(const unsigned char*);
 size_t writeFunction(void*, size_t,size_t, std::string*);
 peerInfo* makeGetRequest(std::string,peerInfo*,int&);
-void makeHandshake(peerInfo*,int,const unsigned char[]);
+void makeHandshake(peerInfo*,int,char[]);
 
 
 int main() {
@@ -81,102 +17,35 @@ int main() {
     peerInfo* allPeers=NULL;
     int peersQuantity=0;
     string completeUrl;
-    ifstream file;
-    //file.open("bm.torrent", ifstream::binary);
-    file.open("blasphemous.torrent", ifstream::binary);
+    TorrentFile torrentFile=TorrentFile("Blasphemous_P_RUS_+_ENG_+_7_ENG_2019_2_0_27_+_6_DLC_Scene_rutracker.torrent");
+    torrentFile.calculateInfoHashAndAddress();
+    //file.open("blasphemous.torrent", ifstream::binary);
     //file.open("civ.torrent", ifstream::binary);
-    if(!file.is_open())
-        cout<<"Didn't open"<<endl;
-    else
-    {
-
-    //Get file length
-    file.seekg(0, file.end);
-    int fileLength = file.tellg();
-    //cout << "File length == " << fileLength << endl;
-    char* fileContent=(char*)malloc(fileLength);
-    file.seekg(0, file.beg);
-    file.read((char*)fileContent,fileLength);//get content of file in buffer
-
-    string address;
-    address=getAddress(fileContent,fileLength);
-    cout<<address<<endl;
-    unsigned char hash[20];
-    getHash(fileContent,hash,fileLength,&file);
-
-
+    torrentFile.extractFilesInfo();
+    torrentFile.displayFiles();
+    PeerManager peerManager;
     string urlEncodedHash;
 
-    urlEncodedHash=urlEncode(hash);
+    urlEncodedHash=urlEncode(torrentFile.info_hash);
 
 
     cout<<urlEncodedHash<<endl;
-    printHash(hash);
+    printHash(torrentFile.info_hash);
 
-    completeUrl+=address+"?info_hash="+urlEncodedHash+"&uploaded=0"+"&downloaded=0"+"&port=6881"+"&left=1239";
+    completeUrl+=torrentFile.address+"?info_hash="+urlEncodedHash+"&uploaded=0"+"&downloaded=0"+"&port=6881"+"&left=1239";
 
     cout<<"Request url: "<<completeUrl<<endl;
 
     allPeers=makeGetRequest(completeUrl,allPeers,peersQuantity);
     //cout<<"Quantity of peers: "<<peersQuantity<<endl;
-    makeHandshake(allPeers,peersQuantity,hash);
-    file.close();
-    }
+    makeHandshake(allPeers,peersQuantity,(char*)torrentFile.info_hash);
 
     return 0;
 }
 
-std::string getAddress(char* fileContent,int fileLength)
-{
-    std::ostringstream addressBuffer;
-    int counter1=0;
-    int counter2=0;
-    int j=0;
-    for(int i=0;i<fileLength;i++)
-    {
-        if(counter1!=2)
-        {
-            if(fileContent[i]==':')
-            {
-                counter1++;
-            }
-            continue;
-        }
-        else
-        {
-            if(counter2==3 && (fileContent[i]>='0' && fileContent[i]<='9'))
-            {
-                break;
-            }
-            addressBuffer<<fileContent[i];
-            if(fileContent[i]=='/')
-            {
-                counter2++;
-            }
-            j++;
-        }
-    }
-    return addressBuffer.str();
-}
 
-void getHash(char* fileContent,unsigned char* hash,int fileLength,std::ifstream* file)
-{
-    int start_offset=-2;
-    int end_offset=-2;
-    start_offset=findStartPos(fileContent,fileLength);
-    end_offset=findEndPos(fileContent,fileLength);
-    //std::cout<<"Start offset "<<start_offset<<std::endl;
-    //std::cout<<"End offset "<<end_offset<<std::endl;
 
-    fileLength-=start_offset;
-    fileLength-=end_offset;
-    fileContent=(char*)realloc(fileContent,fileLength);
-    file->seekg(start_offset, file->beg);
-    file->read((char*)fileContent,fileLength);//get content of file in buffer
 
-    SHA1((unsigned char*)fileContent, fileLength, hash);
-    //std::cout << "File length == " << fileLength << std::endl;
-}
 
 size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
     data->append((char*) ptr, size * nmemb);
@@ -221,7 +90,9 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
                     check+=temp;
             }
             ip[j]=check;
+            allPeers[iteration].newIp+=std::to_string(check)+'.';
         }
+        allPeers[iteration].newIp.erase(allPeers[iteration].newIp.begin()+allPeers[iteration].newIp.size()-1);
 //        std::cout<<"Ip is: ";
 //        for(int i=0;i<4;i++)
 //            std::cout<<(unsigned int)ip[i]<<'.';
@@ -245,22 +116,15 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
         }
         portNumber+=check;
         //std::cout<<"Port number is: "<<portNumber<<std::endl;
-        allPeers[iteration].setIp(ip);
         allPeers[iteration].setPortNumber(portNumber);
         pos+=6;
     }
+    std::cout<<"Peers quantity: "<<peersQuantity<<std::endl;
     std::cout<<"Peers info:"<<std::endl;
     for(int i=0;i<peersQuantity;i++)
     {
-        std::cout<<"Ip: ";
-        for(int j=0;j<7;j++)
-        {
-            if(j%2!=0)
-                std::cout<<*(allPeers[i].getIp()+j);
-            else
-                std::cout<<(unsigned int)*(allPeers[i].getIp()+j);
-        }
-        std::cout<<" port: "<<allPeers[i].getPortNumber()<<std::endl;
+        std::cout<<"Ip: "<<allPeers[i].newIp;
+        std::cout<<"    port: "<<allPeers[i].getPortNumber()<<std::endl;
     }
     return allPeers;
 }
@@ -341,104 +205,39 @@ void printHash(const unsigned char* test_sha) {
     //std::cout << os.str() << std::endl << std::endl;
 }
 
-int findStartPos(char* content,int fileLength)
+void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[])
 {
-    int result=-1;
-    for(int i=0;i<fileLength;i++)
-        if(content[i]=='i' && content[i+1]=='n' && content[i+2]=='f' && content[i+3]=='o')
-            result=i+4;
-    return result;
-}
-
-int findEndPos(char* content,int fileLength)
-{
-    int result=-1;
-    if(isalnum(content[fileLength-2]))
-    {
-        if(content[fileLength-2]=='e')
-        {
-            result=1;
-        }
-        else
-        {
-            for(int i=3;i<fileLength;i++)
-            {
-                if(content[fileLength-i]=='e' && (content[fileLength-i+1]>='0' && content[fileLength-i+1]<='9'))
-                {
-                    result=i-1;
-                    break;
-                }
-            }
-        }
-    }
-    return result;
-}
-
-void makeHandshake(peerInfo* allPeers,int peersQuantity,const unsigned char info_hash[])
-{
-//    hostent* localHost;
-//    char* localIP;
-
-    //localHost = gethostbyname("93.125.107.18");
-    //localIP = inet_ntoa (*(struct in_addr *)*localHost->h_addr_list);
-    //std::cout<<localIP<<std::endl;
-    //////////////////////////////////////////////////////////
     int sockfd;//file descriptor for socket
     const int handshakeSize=1+19+8+20+20;//size of message for handshake
     char responseBuffer[handshakeSize]={NULL};
-    char handshakeBuffer[handshakeSize]={NULL};
-    char peer_id[20];
-    for(int i=0;i<20;i++)
-    {
-        peer_id[i]='A'+i;
-    }
-    //handshake format: 1 byte for protocol Length+19 bytes of protocol Name+8 reserved bytes
-    // +20 bytes of info_hash
-    // +20 bytes peer identifier
-    int protocolLength=19;
-    const std::string protocolName="BitTorrent protocol";
-    //info_hash
-    //generate peer identifier(read at wiki)
-    //unite all these variables into one buffer and write it at socket
+    //char handshakeBuffer[handshakeSize]={NULL};
 
-    handshakeBuffer[0]=1;
-    for(int i=0;i<19;i++)
-    {
-        handshakeBuffer[1+i]=protocolName[i];
-    }
-    for(int i=0;i<8;i++)
-    {
-        handshakeBuffer[20+i]=0;
-    }
-    for(int i=0;i<20;i++)
-    {
-        handshakeBuffer[28+i]=info_hash[i];
-        handshakeBuffer[48+i]=peer_id[i];
-    }
-    //////////////////////////////
-    addrinfo hints;
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-    hints.ai_flags = AI_NUMERICSERV;    /* For wildcard IP address */
-    hints.ai_protocol = 0;          /* Any protocol */
-    hints.ai_canonname = NULL;
-    hints.ai_addr = NULL;
-    hints.ai_next = NULL;
-    ////////////////////////////////
-    hostent *host;
+    char flags[8]={0,0,0,0,0,0,0,0};
+    std::string handshakeBuffer;
+    handshakeBuffer+=19;
+    handshakeBuffer+="BitTorrent protocol";
+    handshakeBuffer+=flags;
+    handshakeBuffer+=info_hash;
+    handshakeBuffer+="HAHA-0142421214125A-";
+
+
     sockaddr_in addr;
     addr.sin_family=AF_INET;
-    //addr.sin_port= htons(allPeers[0].getPortNumber());
+//    int n=0;
+//    addr.sin_addr.s_addr= inet_addr(allPeers[n].newIp.c_str());
+//    addr.sin_port= htons(allPeers[n].getPortNumber());
+    addr.sin_addr.s_addr= inet_addr("0.0.0.0");
     addr.sin_port= htons(6881);
-    addr.sin_addr.s_addr= inet_addr("93.125.107.17");
-    //addr.sin_addr.s_addr= inet_addr((const char*)(allPeers[0].getIp()));
     sockfd=socket(AF_INET,SOCK_DGRAM,0);
+    int wf=0, rf=0;
     if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
     {
-        write(sockfd, handshakeBuffer, handshakeSize);
-        read(sockfd, responseBuffer, handshakeSize);
+        wf=write(sockfd, handshakeBuffer.c_str(), handshakeSize);
+        std::cout<<"Connected. Waiting for response."<<std::endl;
+        rf=read(sockfd, responseBuffer, handshakeSize);
+        std::cout<<"Got response: "<<responseBuffer<<"Response size: "<<rf<<std::endl;
         close(sockfd);
+        std::cout<<"Got the data."<<std::endl;
     }
     else
     {
