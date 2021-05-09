@@ -29,5 +29,6 @@ public:
 
 class Downloader//create files of the torrent and fill them with pieces received from peer,
 {               //uses PeerManager to request and receive pieces
+public:
     void download(int sockfd,std::vector<class fileInfo> files,class TorrentFile torrentFile,PeerManager peerManager);
 };

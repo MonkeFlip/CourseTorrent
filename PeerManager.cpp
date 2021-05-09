@@ -74,9 +74,9 @@ int PeerManager::readMessage(int sockfd, std::string &response)
 void Downloader::download(int sockfd,std::vector<fileInfo> files,TorrentFile torrentFile,PeerManager peerManager)
 {
     std::ofstream file;
-    int index;//zero-based piece index
-    int begin;//zero-based byte offset within the piece
-    int length;//length requested from the peer
+    int index=0;//zero-based piece index
+    int begin=0;//zero-based byte offset within the piece
+    int length=BUF_SIZE;//length requested from the peer
     std::vector<fileInfo>::const_iterator iterator=files.begin();
     std::string pieceBuffer;
     int readBytes=0;

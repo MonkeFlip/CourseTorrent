@@ -109,6 +109,7 @@ void TorrentFile::calculateInfoHashAndAddress() {
         std::cout << this->address << std::endl;
         getHash(fileContentBuffer, this->info_hash, fileLength, &file);
         file.close();
+        free(fileContentBuffer);
     }
 }
 

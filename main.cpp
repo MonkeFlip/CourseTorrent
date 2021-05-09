@@ -9,7 +9,7 @@ peerInfo* parseResponseInfo(std::string,peerInfo*,int&);
 std::string urlEncode(const unsigned char*);
 size_t writeFunction(void*, size_t,size_t, std::string*);
 peerInfo* makeGetRequest(std::string,peerInfo*,int&);
-void makeHandshake(peerInfo*,int,char[]);
+void makeHandshake(peerInfo*,int,char[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile);
 
 
 int main() {
@@ -37,8 +37,7 @@ int main() {
 
     allPeers=makeGetRequest(completeUrl,allPeers,peersQuantity);
     //cout<<"Quantity of peers: "<<peersQuantity<<endl;
-    makeHandshake(allPeers,peersQuantity,(char*)torrentFile.info_hash);
-
+    makeHandshake(allPeers,peersQuantity,(char*)torrentFile.info_hash,torrentFile.files,peerManager,torrentFile);
     return 0;
 }
 
@@ -74,9 +73,7 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
     char mem;
     peersQuantity=(responseString.size()-pos)/6;
     allPeers=new peerInfo[peersQuantity];
-    //allPeers=(peerInfo*)malloc(sizeof(peerInfo)*peersQuantity);
-    for(int iteration=0;iteration<peersQuantity;iteration++)
-    //while(pos<(responseString.size()-1))//process all 6-byte strings till from current position till the end
+    for(int iteration=0;iteration<peersQuantity;iteration++) //process all 6-byte strings from current position till the end to extract ip and port number
     {
         int check=0;
         for(int i=pos,j=0;j<4;j++,i++)
@@ -97,7 +94,6 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
 //            std::cout<<(unsigned int)ip[i]<<'.';
 //        std::cout<<std::endl;
         check=0;
-        //int port=0;
         mem=responseString[pos+4];
         for(int temp=128;temp>=1;temp/=2)
         {
@@ -204,7 +200,7 @@ void printHash(const unsigned char* test_sha) {
     //std::cout << os.str() << std::endl << std::endl;
 }
 
-void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[])
+void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile)
 {
     int sockfd;//file descriptor for socket
     const int handshakeSize=1+19+8+20+20;//size of message for handshake
@@ -242,4 +238,7 @@ void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[])
     {
         std::cout<<"Connection failed"<<std::endl;
     }
+    Downloader downloader;
+    downloader.download(sockfd,files,torrentFile,peerManager);
+
 }
