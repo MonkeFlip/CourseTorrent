@@ -1,5 +1,5 @@
 #include "headers.h"
-
+#define BUF_SIZE 2000
 bool PeerManager::isChoked() const {
     return choked;
 }
@@ -60,4 +60,50 @@ void PeerManager::sendRequest(int sockfd, int index, int begin, int length)
     buf[14]=length&0x00ff0000>>16;
     buf[13]=length&0xff000000>>24;
     write(sockfd,buf,17);
+}
+
+int PeerManager::readMessage(int sockfd, std::string &response)
+{
+    int readBytes=0;
+    char buffer[BUF_SIZE]={0};
+    readBytes= read(sockfd,buffer,BUF_SIZE);
+    response=buffer;
+    return readBytes;
+}
+
+void Downloader::download(int sockfd,std::vector<fileInfo> files,TorrentFile torrentFile,PeerManager peerManager)
+{
+    std::ofstream file;
+    int index;//zero-based piece index
+    int begin;//zero-based byte offset within the piece
+    int length;//length requested from the peer
+    std::vector<fileInfo>::const_iterator iterator=files.begin();
+    std::string pieceBuffer;
+    int readBytes=0;
+    while(iterator!=files.end())
+    {
+        file.open(iterator->getFilename(),std::ios::app);
+        while(index<torrentFile.getPieceQuantity())
+        {
+            while(begin<(iterator->getLength()))//this loop will work until we receive all data from file
+            {
+                peerManager.sendRequest(sockfd, index, begin, length);
+                readBytes = peerManager.readMessage(sockfd, pieceBuffer);
+                if (readBytes != -1)
+                {
+                    file << pieceBuffer;
+                    pieceBuffer.clear();
+                    begin+=readBytes;
+                }
+                else
+                {
+                    file.close();
+                    exit(0);
+                }
+            }
+            index++;
+        }
+        file.close();
+        iterator++;
+    }
 }

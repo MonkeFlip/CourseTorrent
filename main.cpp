@@ -14,7 +14,7 @@ void makeHandshake(peerInfo*,int,char[]);
 
 int main() {
     using namespace std;
-    peerInfo* allPeers=NULL;
+    peerInfo* allPeers= nullptr;
     int peersQuantity=0;
     string completeUrl;
     TorrentFile torrentFile=TorrentFile("Blasphemous_P_RUS_+_ENG_+_7_ENG_2019_2_0_27_+_6_DLC_Scene_rutracker.torrent");
@@ -25,9 +25,8 @@ int main() {
     torrentFile.displayFiles();
     PeerManager peerManager;
     string urlEncodedHash;
-
     urlEncodedHash=urlEncode(torrentFile.info_hash);
-
+    //cout<<"Quantity of pieces: "<<torrentFile.getPieceQuantity()<<" Length of one piece: "<<torrentFile.getPieceLength()<<std::endl;
 
     cout<<urlEncodedHash<<endl;
     printHash(torrentFile.info_hash);
@@ -55,7 +54,7 @@ size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
 peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& peersQuantity)
 {
     int pos=-1;
-    unsigned char ip[4]={NULL};
+    unsigned char ip[4]={0};
     unsigned short int portNumber=0;
     for(int i=0;i<responseString.size();i++)
     {
@@ -209,7 +208,7 @@ void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[])
 {
     int sockfd;//file descriptor for socket
     const int handshakeSize=1+19+8+20+20;//size of message for handshake
-    char responseBuffer[handshakeSize]={NULL};
+    char responseBuffer[handshakeSize]={0};
     //char handshakeBuffer[handshakeSize]={NULL};
 
     char flags[8]={0,0,0,0,0,0,0,0};

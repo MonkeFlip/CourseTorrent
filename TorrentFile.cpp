@@ -25,7 +25,7 @@ void TorrentFile::extractFilesInfo()
     {
         positionInFile=fileContent.find("lengthi",positionInFile);
         positionInFile+=7;
-        std::cout<<"Position: "<<positionInFile<<std::endl;
+        //std::cout<<"Position: "<<positionInFile<<std::endl;
         while(fileContent[positionInFile]!='e')
         {
             buffer+=fileContent[positionInFile];
@@ -99,13 +99,15 @@ void TorrentFile::calculateInfoHashAndAddress() {
         file.seekg(0, file.end);
         int fileLength = file.tellg();
         //cout << "File length == " << fileLength << endl;
-        char *fileContent = (char *) malloc(fileLength);
+        char *fileContentBuffer = (char *) malloc(fileLength);
         file.seekg(0, file.beg);
-        file.read((char *) fileContent, fileLength);//get content of file in buffer
-
-        this->address = getAddress(fileContent, fileLength);
+        file.read((char *) fileContentBuffer, fileLength);//get content of file in buffer
+        this->extractPieceLengthAndQuantity(fileContentBuffer);
+        //std::cout<<"File content: "<<std::endl;
+        std::cout<<fileContentBuffer<<std::endl;
+        this->address = getAddress(fileContentBuffer, fileLength);
         std::cout << this->address << std::endl;
-        getHash(fileContent, this->info_hash, fileLength, &file);
+        getHash(fileContentBuffer, this->info_hash, fileLength, &file);
         file.close();
     }
 }
@@ -219,5 +221,46 @@ void TorrentFile::displayFiles()
         std::cout<<iterator->getFilename()<<" "<<iterator->getLength()<<std::endl;
         iterator++;
     }
+}
+
+void TorrentFile::extractPieceLengthAndQuantity(char *fileContentBuffer) {
+    int position=0;//position in string "fileContent"
+    std::string buffer;
+    std::string fileContent=fileContentBuffer;
+    position=fileContent.find("piece lengthi");
+    position+=13;
+    while(fileContent[position]!='e')
+    {
+        buffer+=fileContent[position];
+        position++;
+    }
+    //std::cout<<"Content of buffer with length: "<<buffer<<std::endl;
+    this->setPieceLength(stoi(buffer));
+    buffer.clear();
+    position=fileContent.find("pieces",position);
+    position+=6;
+    while(fileContent[position]!=':')
+    {
+        buffer+=fileContent[position];
+        position++;
+    }
+    //std::cout<<"Content of buffer with quantity: "<<buffer<<std::endl;
+    this->setPieceQuantity(stoi(buffer));
+}
+
+void TorrentFile::setPieceLength(unsigned int pieceLength) {
+    TorrentFile::pieceLength = pieceLength;
+}
+
+void TorrentFile::setPieceQuantity(unsigned int pieceQuantity) {
+    TorrentFile::pieceQuantity = pieceQuantity;
+}
+
+unsigned int TorrentFile::getPieceLength() const {
+    return pieceLength;
+}
+
+unsigned int TorrentFile::getPieceQuantity() const {
+    return pieceQuantity;
 }
 
