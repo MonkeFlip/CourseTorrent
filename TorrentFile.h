@@ -52,8 +52,8 @@ public:
     unsigned char info_hash[20];//info hash of torrent-file
     std::vector<fileInfo> files;//information about every file in torrent
     std::string address;//address of torrent tracker
-    unsigned int pieceLength;//length of one piece
-    unsigned int pieceQuantity;//total amount of pieces in all files
+    //unsigned int pieceLength;//length of one piece
+    //unsigned int pieceQuantity;//total amount of pieces in all files
 
    void addFile(fileInfo);
 
@@ -73,13 +73,13 @@ public:
 
     void displayFiles();//print information about all files of torrent
 
-    void extractPieceLengthAndQuantity(char* fileContentBuffer);
+    //void extractPieceLengthAndQuantity(char* fileContentBuffer);
 
-    void setPieceLength(unsigned int pieceLength);
+    //void setPieceLength(unsigned int pieceLength);
 
-    void setPieceQuantity(unsigned int pieceQuantity);
+    //void setPieceQuantity(unsigned int pieceQuantity);
 
-    unsigned int getPieceLength() const;
+    //unsigned int getPieceLength() const;
 
-    unsigned int getPieceQuantity() const;
+    //unsigned int getPieceQuantity() const;
 };

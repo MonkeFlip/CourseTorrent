@@ -17,7 +17,8 @@ int main() {
     peerInfo* allPeers= nullptr;
     int peersQuantity=0;
     string completeUrl;
-    TorrentFile torrentFile=TorrentFile("Blasphemous_P_RUS_+_ENG_+_7_ENG_2019_2_0_27_+_6_DLC_Scene_rutracker.torrent");
+    //TorrentFile torrentFile=TorrentFile("Blasphemous_P_RUS_+_ENG_+_7_ENG_2019_2_0_27_+_6_DLC_Scene_rutracker.torrent");
+    TorrentFile torrentFile=TorrentFile("Bjarne_Stroustrup_Бьярне_Страуструп_Programming_Principles_And_Practice.torrent");
     torrentFile.calculateInfoHashAndAddress();
     //file.open("blasphemous.torrent", ifstream::binary);
     //file.open("civ.torrent", ifstream::binary);
@@ -225,19 +226,20 @@ void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[],std::ve
     addr.sin_port= htons(6881);
     sockfd=socket(AF_INET,SOCK_DGRAM,0);
     int wf=0, rf=0;
-    if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
-    {
-        wf=write(sockfd, handshakeBuffer.c_str(), handshakeSize);
-        std::cout<<"Connected. Waiting for response."<<std::endl;
-        rf=read(sockfd, responseBuffer, handshakeSize);
-        std::cout<<"Got response: "<<responseBuffer<<"Response size: "<<rf<<std::endl;
-        close(sockfd);
-        std::cout<<"Got the data."<<std::endl;
-    }
-    else
-    {
-        std::cout<<"Connection failed"<<std::endl;
-    }
+//    if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
+//    {
+//        wf=write(sockfd, handshakeBuffer.c_str(), handshakeSize);
+//        std::cout<<"Connected. Waiting for response."<<std::endl;
+//        rf=read(sockfd, responseBuffer, handshakeSize);
+//        std::cout<<"Got response: "<<responseBuffer<<"Response size: "<<rf<<std::endl;
+//        close(sockfd);
+//        std::cout<<"Got the data."<<std::endl;
+//    }
+//    else
+//    {
+//        std::cout<<"Connection failed"<<std::endl;
+//    }
+    connect(sockfd,(struct sockaddr*)&addr,sizeof(addr));
     Downloader downloader;
     downloader.download(sockfd,files,torrentFile,peerManager);
 
