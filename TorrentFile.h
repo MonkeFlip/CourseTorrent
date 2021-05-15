@@ -6,6 +6,8 @@ class peerInfo
 {
 private:
     unsigned short int portNumber;
+    bool choked;
+    bool interested;
 public:
     std::string newIp;
     //constructors
@@ -22,6 +24,14 @@ public:
     {
         return this->portNumber;
     }
+
+    bool isChoked() const;
+
+    bool isInterested() const;
+
+    void setChoked(bool choked);
+
+    void setInterested(bool interested);
 
     void setPortNumber(unsigned short int portNumberBuffer) {
         this->portNumber=portNumberBuffer;

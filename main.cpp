@@ -14,31 +14,40 @@ void makeHandshake(peerInfo*,int,char[],std::vector<fileInfo> files,PeerManager 
 
 int main() {
     using namespace std;
-    peerInfo* allPeers= nullptr;
+    //peerInfo* allPeers= nullptr;
     int peersQuantity=0;
     string completeUrl;
-    //TorrentFile torrentFile=TorrentFile("Blasphemous_P_RUS_+_ENG_+_7_ENG_2019_2_0_27_+_6_DLC_Scene_rutracker.torrent");
-    TorrentFile torrentFile=TorrentFile("Bjarne_Stroustrup_Бьярне_Страуструп_Programming_Principles_And_Practice.torrent");
-    torrentFile.calculateInfoHashAndAddress();
-    //file.open("blasphemous.torrent", ifstream::binary);
-    //file.open("civ.torrent", ifstream::binary);
-    torrentFile.extractFilesInfo();
-    torrentFile.displayFiles();
-    PeerManager peerManager;
-    string urlEncodedHash;
-    urlEncodedHash=urlEncode(torrentFile.info_hash);
-    //cout<<"Quantity of pieces: "<<torrentFile.getPieceQuantity()<<" Length of one piece: "<<torrentFile.getPieceLength()<<std::endl;
+    int option=0;
+    std::string torrentName;
+    std::cout<<"1) Download files using torrent-file."<<std::endl;
+    std::cin>>option;
+    switch (option) {
+        case 1:
+        {
+            std::cout<<"Enter torrent-file name."<<std::endl;
+            cin.ignore();
+            std::getline(std::cin,torrentName);
+            TorrentFile torrentFile=TorrentFile(torrentName);
+            torrentFile.calculateInfoHashAndAddress();
+            torrentFile.extractFilesInfo();
+            torrentFile.displayFiles();
+            PeerManager peerManager;
+            string urlEncodedHash;
+            urlEncodedHash=urlEncode(torrentFile.info_hash);
+            cout<<urlEncodedHash<<endl;
+            printHash(torrentFile.info_hash);
 
-    cout<<urlEncodedHash<<endl;
-    printHash(torrentFile.info_hash);
+            completeUrl+=torrentFile.address+"?info_hash="+urlEncodedHash+"&uploaded=0"+"&downloaded=0"+"&port=6881"+"&left=1239";
 
-    completeUrl+=torrentFile.address+"?info_hash="+urlEncodedHash+"&uploaded=0"+"&downloaded=0"+"&port=6881"+"&left=1239";
+            cout<<"Request url: "<<completeUrl<<endl;
 
-    cout<<"Request url: "<<completeUrl<<endl;
-
-    allPeers=makeGetRequest(completeUrl,allPeers,peersQuantity);
-    //cout<<"Quantity of peers: "<<peersQuantity<<endl;
-    makeHandshake(allPeers,peersQuantity,(char*)torrentFile.info_hash,torrentFile.files,peerManager,torrentFile);
+            peerManager.allPeers=makeGetRequest(completeUrl,peerManager.allPeers,peersQuantity);
+            //cout<<"Quantity of peers: "<<peersQuantity<<endl;
+            makeHandshake(peerManager.allPeers,peersQuantity,(char*)torrentFile.info_hash,torrentFile.files,peerManager,torrentFile);
+        }
+        default:
+            break;
+    }
     return 0;
 }
 

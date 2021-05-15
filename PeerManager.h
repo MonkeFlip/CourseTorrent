@@ -1,14 +1,13 @@
 #pragma once
 
+#include "TorrentFile.h"
 class PeerManager//controls peer connection, state and messages
 {
 private:
-    bool choked;
-    bool interested;
 public:
+    class peerInfo* allPeers;
     PeerManager(){
-        this->choked=false;
-        this->interested=false;
+        this->allPeers= nullptr;
     }
     void sendChoke(int sockfd);
     void sendUnchoke(int sockfd);
@@ -17,14 +16,6 @@ public:
     void sendRequest(int sockfd,int index,int begin,int length);
 
     int readMessage(int sockfd,std::string &response);
-    //getters and setters
-    bool isChoked() const;
-
-    bool isInterested() const;
-
-    void setChoked(bool choked);
-
-    void setInterested(bool interested);
 };
 
 class Downloader//create files of the torrent and fill them with pieces received from peer,

@@ -118,7 +118,10 @@ void TorrentFile::calculateInfoHashAndAddress() {
     std::ifstream file;
     file.open(this->torrentName,std::ifstream::binary);
     if(!file.is_open())
+    {
         std::cout<<"Failed to open file."<<std::endl;
+        exit(0);
+    }
     else {
 
         //Get file length
@@ -248,6 +251,22 @@ void TorrentFile::displayFiles()
         std::cout<<iterator->getFilename()<<" "<<iterator->getLength()<<std::endl;
         iterator++;
     }
+}
+
+bool peerInfo::isChoked() const {
+    return choked;
+}
+
+bool peerInfo::isInterested() const {
+    return interested;
+}
+
+void peerInfo::setChoked(bool choked) {
+    this->choked = choked;
+}
+
+void peerInfo::setInterested(bool interested) {
+    this->interested = interested;
 }
 
 //void TorrentFile::extractPieceLengthAndQuantity(char *fileContentBuffer) {

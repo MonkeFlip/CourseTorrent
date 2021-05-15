@@ -1,20 +1,5 @@
 #include "headers.h"
 #define BUF_SIZE 2000
-bool PeerManager::isChoked() const {
-    return choked;
-}
-
-bool PeerManager::isInterested() const {
-    return interested;
-}
-
-void PeerManager::setChoked(bool choked) {
-    PeerManager::choked = choked;
-}
-
-void PeerManager::setInterested(bool interested) {
-    PeerManager::interested = interested;
-}
 
 void PeerManager::sendChoke(int sockfd)
 {
