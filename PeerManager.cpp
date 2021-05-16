@@ -107,3 +107,27 @@ void Downloader::download(int sockfd,std::vector<fileInfo> files,TorrentFile tor
         iterator++;
     }
 }
+
+int PeerManager::makeHandshake(char *info_hash, std::vector<fileInfo> files, TorrentFile torrentFile)
+{
+    int sockfd=0;
+    const int handshakeSize=1+19+8+20+20;//size of message for handshake
+    char responseBuffer[handshakeSize]={0};
+    char flags[8]={0,0,0,0,0,0,0,0};
+    std::string handshakeBuffer;
+    handshakeBuffer+=19;
+    handshakeBuffer+="BitTorrent protocol";
+    handshakeBuffer+=flags;
+    handshakeBuffer+=info_hash;
+    handshakeBuffer+="HAHA-0142421214125A-";
+    sockaddr_in addr;
+    addr.sin_family=AF_INET;
+//    int n=0;
+//    addr.sin_addr.s_addr= inet_addr(allPeers[n].newIp.c_str());
+//    addr.sin_port= htons(allPeers[n].getPortNumber());
+    addr.sin_addr.s_addr= inet_addr("0.0.0.0");
+    addr.sin_port= htons(6881);
+    sockfd=socket(AF_INET,SOCK_DGRAM,0);
+    connect(sockfd,(struct sockaddr*)&addr,sizeof(addr));
+    return sockfd;
+}

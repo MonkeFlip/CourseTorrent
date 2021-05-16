@@ -16,6 +16,7 @@ public:
     void sendRequest(int sockfd,int index,int begin,int length);
 
     int readMessage(int sockfd,std::string &response);
+    int makeHandshake(char info_hash[],std::vector<class fileInfo> files, class TorrentFile torrentFile);
 };
 
 class Downloader//create files of the torrent and fill them with pieces received from peer,

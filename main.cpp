@@ -9,7 +9,7 @@ peerInfo* parseResponseInfo(std::string,peerInfo*,int&);
 std::string urlEncode(const unsigned char*);
 size_t writeFunction(void*, size_t,size_t, std::string*);
 peerInfo* makeGetRequest(std::string,peerInfo*,int&);
-void makeHandshake(peerInfo*,int,char[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile);
+//void makeHandshake(peerInfo*,int,char[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile);
 
 
 int main() {
@@ -42,8 +42,12 @@ int main() {
             cout<<"Request url: "<<completeUrl<<endl;
 
             peerManager.allPeers=makeGetRequest(completeUrl,peerManager.allPeers,peersQuantity);
+            int sockfd=0;
+            sockfd=peerManager.makeHandshake((char*)torrentFile.info_hash,torrentFile.files,torrentFile);
+            Downloader downloader;
+            downloader.download(sockfd,torrentFile.files,torrentFile,peerManager);
             //cout<<"Quantity of peers: "<<peersQuantity<<endl;
-            makeHandshake(peerManager.allPeers,peersQuantity,(char*)torrentFile.info_hash,torrentFile.files,peerManager,torrentFile);
+            //makeHandshake(peerManager.allPeers,peersQuantity,(char*)torrentFile.info_hash,torrentFile.files,peerManager,torrentFile);
         }
         default:
             break;
@@ -210,46 +214,46 @@ void printHash(const unsigned char* test_sha) {
     //std::cout << os.str() << std::endl << std::endl;
 }
 
-void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile)
-{
-    int sockfd;//file descriptor for socket
-    const int handshakeSize=1+19+8+20+20;//size of message for handshake
-    char responseBuffer[handshakeSize]={0};
-    //char handshakeBuffer[handshakeSize]={NULL};
-
-    char flags[8]={0,0,0,0,0,0,0,0};
-    std::string handshakeBuffer;
-    handshakeBuffer+=19;
-    handshakeBuffer+="BitTorrent protocol";
-    handshakeBuffer+=flags;
-    handshakeBuffer+=info_hash;
-    handshakeBuffer+="HAHA-0142421214125A-";
-
-
-    sockaddr_in addr;
-    addr.sin_family=AF_INET;
-//    int n=0;
-//    addr.sin_addr.s_addr= inet_addr(allPeers[n].newIp.c_str());
-//    addr.sin_port= htons(allPeers[n].getPortNumber());
-    addr.sin_addr.s_addr= inet_addr("0.0.0.0");
-    addr.sin_port= htons(6881);
-    sockfd=socket(AF_INET,SOCK_DGRAM,0);
-    int wf=0, rf=0;
-//    if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
-//    {
-//        wf=write(sockfd, handshakeBuffer.c_str(), handshakeSize);
-//        std::cout<<"Connected. Waiting for response."<<std::endl;
-//        rf=read(sockfd, responseBuffer, handshakeSize);
-//        std::cout<<"Got response: "<<responseBuffer<<"Response size: "<<rf<<std::endl;
-//        close(sockfd);
-//        std::cout<<"Got the data."<<std::endl;
-//    }
-//    else
-//    {
-//        std::cout<<"Connection failed"<<std::endl;
-//    }
-    connect(sockfd,(struct sockaddr*)&addr,sizeof(addr));
-    Downloader downloader;
-    downloader.download(sockfd,files,torrentFile,peerManager);
-
-}
+//void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile)
+//{
+//    int sockfd;//file descriptor for socket
+//    const int handshakeSize=1+19+8+20+20;//size of message for handshake
+//    char responseBuffer[handshakeSize]={0};
+//    //char handshakeBuffer[handshakeSize]={NULL};
+//
+//    char flags[8]={0,0,0,0,0,0,0,0};
+//    std::string handshakeBuffer;
+//    handshakeBuffer+=19;
+//    handshakeBuffer+="BitTorrent protocol";
+//    handshakeBuffer+=flags;
+//    handshakeBuffer+=info_hash;
+//    handshakeBuffer+="HAHA-0142421214125A-";
+//
+//
+//    sockaddr_in addr;
+//    addr.sin_family=AF_INET;
+////    int n=0;
+////    addr.sin_addr.s_addr= inet_addr(allPeers[n].newIp.c_str());
+////    addr.sin_port= htons(allPeers[n].getPortNumber());
+//    addr.sin_addr.s_addr= inet_addr("0.0.0.0");
+//    addr.sin_port= htons(6881);
+//    sockfd=socket(AF_INET,SOCK_DGRAM,0);
+//    int wf=0, rf=0;
+////    if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
+////    {
+////        wf=write(sockfd, handshakeBuffer.c_str(), handshakeSize);
+////        std::cout<<"Connected. Waiting for response."<<std::endl;
+////        rf=read(sockfd, responseBuffer, handshakeSize);
+////        std::cout<<"Got response: "<<responseBuffer<<"Response size: "<<rf<<std::endl;
+////        close(sockfd);
+////        std::cout<<"Got the data."<<std::endl;
+////    }
+////    else
+////    {
+////        std::cout<<"Connection failed"<<std::endl;
+////    }
+//    connect(sockfd,(struct sockaddr*)&addr,sizeof(addr));
+//    Downloader downloader;
+//    downloader.download(sockfd,files,torrentFile,peerManager);
+//
+//}
