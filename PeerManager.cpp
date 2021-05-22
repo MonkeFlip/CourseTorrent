@@ -53,7 +53,6 @@ int PeerManager::readMessage(int sockfd, std::string &response)
     response.clear();
     char buffer[BUF_SIZE+13]={0};
     readBytes= read(sockfd,buffer,BUF_SIZE+13);
-    //response=std::string(buffer,readBytes);
     for(int i=0;i<readBytes;i++)
     {
         response+=buffer[i];
@@ -61,18 +60,18 @@ int PeerManager::readMessage(int sockfd, std::string &response)
     return readBytes;
 }
 
-void Downloader::download(int sockfd,std::vector<fileInfo> files,TorrentFile torrentFile,PeerManager peerManager)
+void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerManager)
 {
     std::ofstream file;
     int index=0;//zero-based file index
     int begin=0;//zero-based byte offset within the file
     int length=BUF_SIZE;//length requested from the peer
-    std::vector<fileInfo>::const_iterator iterator=files.begin();
+    std::vector<fileInfo>::const_iterator iterator=torrentFile.files.begin();
     std::string pieceBuffer;
     std::string buffer;
     int readBytes=0;
     int counter=0;
-    while(iterator!=files.end())
+    while(iterator!=torrentFile.files.end())
     {
         while(begin<(iterator->getLength()))//this loop will work until we receive all data from file
         {
@@ -105,10 +104,11 @@ void Downloader::download(int sockfd,std::vector<fileInfo> files,TorrentFile tor
         }
         index++;
         iterator++;
+        begin=0;
     }
 }
 
-int PeerManager::makeHandshake(char *info_hash, std::vector<fileInfo> files, TorrentFile torrentFile)
+int PeerManager::makeHandshake(TorrentFile torrentFile)
 {
     int sockfd=0;
     const int handshakeSize=1+19+8+20+20;//size of message for handshake
@@ -118,7 +118,7 @@ int PeerManager::makeHandshake(char *info_hash, std::vector<fileInfo> files, Tor
     handshakeBuffer+=19;
     handshakeBuffer+="BitTorrent protocol";
     handshakeBuffer+=flags;
-    handshakeBuffer+=info_hash;
+    handshakeBuffer+=(char*)torrentFile.info_hash;
     handshakeBuffer+="HAHA-0142421214125A-";
     sockaddr_in addr;
     addr.sin_family=AF_INET;

@@ -9,7 +9,7 @@ private:
     bool choked;
     bool interested;
 public:
-    std::string newIp;
+    std::string ip;
     //constructors
     peerInfo()
     {
@@ -24,6 +24,10 @@ public:
     {
         return this->portNumber;
     }
+
+    const std::string &getIp() const;
+
+    void setIp(const std::string &ip);
 
     bool isChoked() const;
 
@@ -67,7 +71,7 @@ public:
 
    void addFile(fileInfo);
 
-   void extractFilesInfo();
+   void extractFilesInfo(std::string downloadDirectory);
 
     void setTorrentName(const std::string &torrentName);
 
@@ -83,13 +87,4 @@ public:
 
     void displayFiles();//print information about all files of torrent
 
-    //void extractPieceLengthAndQuantity(char* fileContentBuffer);
-
-    //void setPieceLength(unsigned int pieceLength);
-
-    //void setPieceQuantity(unsigned int pieceQuantity);
-
-    //unsigned int getPieceLength() const;
-
-    //unsigned int getPieceQuantity() const;
 };

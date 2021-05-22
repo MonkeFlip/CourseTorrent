@@ -9,48 +9,114 @@ peerInfo* parseResponseInfo(std::string,peerInfo*,int&);
 std::string urlEncode(const unsigned char*);
 size_t writeFunction(void*, size_t,size_t, std::string*);
 peerInfo* makeGetRequest(std::string,peerInfo*,int&);
-//void makeHandshake(peerInfo*,int,char[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile);
-
 
 int main() {
     using namespace std;
     //peerInfo* allPeers= nullptr;
-    int peersQuantity=0;
+    int peersQuantity = 0;
     string completeUrl;
-    int option=0;
+    int option = 0;
+    std::string downloadDirectory;
     std::string torrentName;
-    std::cout<<"1) Download files using torrent-file."<<std::endl;
-    std::cin>>option;
-    switch (option) {
-        case 1:
-        {
-            std::cout<<"Enter torrent-file name."<<std::endl;
+    while(1)
+    {
+        std::cout << "1) Download files using torrent-file." << std::endl;
+        std::cout << "2) Settings." << std::endl;
+        std::cout << "3) Exit." << std::endl;
+        std::cin >> option;
+        switch (option) {
+        case 1: {
+            std::cout << "Enter torrent-file name." << std::endl;
             cin.ignore();
-            std::getline(std::cin,torrentName);
-            TorrentFile torrentFile=TorrentFile(torrentName);
+            std::getline(std::cin, torrentName);
+            cout<<"1) Download to default directory."<<endl;
+            cout<<"2) Select directory for download."<<endl;
+            cout<<"3) Back."<<endl;
+            std::cin>>option;
+            switch (option)
+            {
+                case 1:
+                {
+                    ifstream settings_file;
+                    settings_file.open("settings.txt");
+                    getline(settings_file,downloadDirectory);
+                    if(downloadDirectory[downloadDirectory.size()-1]!='/')
+                    {
+                        downloadDirectory+='/';
+                    }
+                    cout<<"Default download directory: "<<downloadDirectory<<endl;
+                    settings_file.close();
+                    break;
+                }
+                case 2:
+                {
+                    cout<<"Enter path to download directory."<<endl;
+                    cin.ignore();
+                    getline(cin,downloadDirectory);
+                    break;
+                }
+                case 3:
+                {
+                    break;
+                }
+                default:
+                    break;
+            }
+            TorrentFile torrentFile = TorrentFile(torrentName);
             torrentFile.calculateInfoHashAndAddress();
-            torrentFile.extractFilesInfo();
+            torrentFile.extractFilesInfo(downloadDirectory);
             torrentFile.displayFiles();
+
             PeerManager peerManager;
             string urlEncodedHash;
-            urlEncodedHash=urlEncode(torrentFile.info_hash);
-            cout<<urlEncodedHash<<endl;
+            urlEncodedHash = urlEncode(torrentFile.info_hash);
+            cout << urlEncodedHash << endl;
             printHash(torrentFile.info_hash);
+            completeUrl += torrentFile.address + "?info_hash=" + urlEncodedHash + "&uploaded=0" + "&downloaded=0" +
+                    "&port=6881" + "&left=1239";
 
-            completeUrl+=torrentFile.address+"?info_hash="+urlEncodedHash+"&uploaded=0"+"&downloaded=0"+"&port=6881"+"&left=1239";
+            cout << "Request url: " << completeUrl << endl;
 
-            cout<<"Request url: "<<completeUrl<<endl;
-
-            peerManager.allPeers=makeGetRequest(completeUrl,peerManager.allPeers,peersQuantity);
-            int sockfd=0;
-            sockfd=peerManager.makeHandshake((char*)torrentFile.info_hash,torrentFile.files,torrentFile);
+            peerManager.allPeers = makeGetRequest(completeUrl, peerManager.allPeers, peersQuantity);
+            int sockfd = 0;
+            sockfd = peerManager.makeHandshake(torrentFile);
             Downloader downloader;
-            downloader.download(sockfd,torrentFile.files,torrentFile,peerManager);
+            downloader.download(sockfd, torrentFile, peerManager);
             //cout<<"Quantity of peers: "<<peersQuantity<<endl;
-            //makeHandshake(peerManager.allPeers,peersQuantity,(char*)torrentFile.info_hash,torrentFile.files,peerManager,torrentFile);
+        }
+        case 2: {
+            std::cout<<"1) Set default download directory."<<std::endl;
+            std::cout<<"2) Back."<<std::endl;
+            cin.ignore();
+            cin>>option;
+            switch (option)
+            {
+                case 1:
+                {
+                    std::cout<<"Enter path to default download directory."<<std::endl;
+                    cin.ignore();
+                    getline(cin,downloadDirectory);
+                    std::ofstream settings_file;
+                    settings_file.open("settings.txt",ios_base::out);
+                    settings_file<<downloadDirectory;
+                    settings_file.close();
+                    break;
+                }
+                case 2:
+                {
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case 3: {
+            return 0;
         }
         default:
             break;
+        }
     }
     return 0;
 }
@@ -100,9 +166,9 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
                     check+=temp;
             }
             ip[j]=check;
-            allPeers[iteration].newIp+=std::to_string(check)+'.';
+            allPeers[iteration].ip+=std::to_string(check)+'.';
         }
-        allPeers[iteration].newIp.erase(allPeers[iteration].newIp.begin()+allPeers[iteration].newIp.size()-1);
+        allPeers[iteration].ip.erase(allPeers[iteration].ip.begin()+allPeers[iteration].ip.size()-1);
 //        std::cout<<"Ip is: ";
 //        for(int i=0;i<4;i++)
 //            std::cout<<(unsigned int)ip[i]<<'.';
@@ -132,7 +198,7 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
     std::cout<<"Peers info:"<<std::endl;
     for(int i=0;i<peersQuantity;i++)
     {
-        std::cout<<"Ip: "<<allPeers[i].newIp;
+        std::cout<<"Ip: "<<allPeers[i].ip;
         std::cout<<"    port: "<<allPeers[i].getPortNumber()<<std::endl;
     }
     return allPeers;
@@ -213,47 +279,3 @@ void printHash(const unsigned char* test_sha) {
         std::cout<<std::dec;
     //std::cout << os.str() << std::endl << std::endl;
 }
-
-//void makeHandshake(peerInfo* allPeers,int peersQuantity,char info_hash[],std::vector<fileInfo> files,PeerManager peerManager,TorrentFile torrentFile)
-//{
-//    int sockfd;//file descriptor for socket
-//    const int handshakeSize=1+19+8+20+20;//size of message for handshake
-//    char responseBuffer[handshakeSize]={0};
-//    //char handshakeBuffer[handshakeSize]={NULL};
-//
-//    char flags[8]={0,0,0,0,0,0,0,0};
-//    std::string handshakeBuffer;
-//    handshakeBuffer+=19;
-//    handshakeBuffer+="BitTorrent protocol";
-//    handshakeBuffer+=flags;
-//    handshakeBuffer+=info_hash;
-//    handshakeBuffer+="HAHA-0142421214125A-";
-//
-//
-//    sockaddr_in addr;
-//    addr.sin_family=AF_INET;
-////    int n=0;
-////    addr.sin_addr.s_addr= inet_addr(allPeers[n].newIp.c_str());
-////    addr.sin_port= htons(allPeers[n].getPortNumber());
-//    addr.sin_addr.s_addr= inet_addr("0.0.0.0");
-//    addr.sin_port= htons(6881);
-//    sockfd=socket(AF_INET,SOCK_DGRAM,0);
-//    int wf=0, rf=0;
-////    if(connect(sockfd,(struct sockaddr*)&addr,sizeof(addr))==0)
-////    {
-////        wf=write(sockfd, handshakeBuffer.c_str(), handshakeSize);
-////        std::cout<<"Connected. Waiting for response."<<std::endl;
-////        rf=read(sockfd, responseBuffer, handshakeSize);
-////        std::cout<<"Got response: "<<responseBuffer<<"Response size: "<<rf<<std::endl;
-////        close(sockfd);
-////        std::cout<<"Got the data."<<std::endl;
-////    }
-////    else
-////    {
-////        std::cout<<"Connection failed"<<std::endl;
-////    }
-//    connect(sockfd,(struct sockaddr*)&addr,sizeof(addr));
-//    Downloader downloader;
-//    downloader.download(sockfd,files,torrentFile,peerManager);
-//
-//}
