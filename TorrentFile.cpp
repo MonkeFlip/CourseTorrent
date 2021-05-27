@@ -148,6 +148,7 @@ void TorrentFile::extractFilesInfo(std::string downloadDirectory)
         buffer.clear();
         this->addFile(fi);
     }
+
 }
 
 void TorrentFile::setTorrentName(const std::string &torrentName) {

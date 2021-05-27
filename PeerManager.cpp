@@ -63,14 +63,24 @@ int PeerManager::readMessage(int sockfd, std::string &response)
 void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerManager)
 {
     std::ofstream file;
+    float progress=0;
+    long int total_size=0;//size of torrent in bytes
+    long int current_size=0;
     int index=0;//zero-based file index
     int begin=0;//zero-based byte offset within the file
     int length=BUF_SIZE;//length requested from the peer
     std::vector<fileInfo>::const_iterator iterator=torrentFile.files.begin();
+    while(iterator!=torrentFile.files.end())
+    {
+        total_size+=iterator->getLength();
+        iterator++;
+    }
+    iterator=torrentFile.files.begin();
     std::string pieceBuffer;
     std::string buffer;
     int readBytes=0;
     int counter=0;
+    std::cout<<"Progress:"<<std::endl;
     while(iterator!=torrentFile.files.end())
     {
         while(begin<(iterator->getLength()))//this loop will work until we receive all data from file
@@ -78,7 +88,7 @@ void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerMan
             peerManager.sendRequest(sockfd, index, begin, length);
             readBytes = peerManager.readMessage(sockfd, buffer);
             counter++;
-            std::cout<<counter<<std::endl;
+            //std::cout<<counter<<std::endl;
             //pieceBuffer=buffer.substr(13);
             pieceBuffer.clear();
             for(int i=13;i<readBytes;i++)
@@ -90,7 +100,7 @@ void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerMan
             {
                 file << pieceBuffer;
                 file.close();
-                std::cout<<pieceBuffer.size()<<std::endl;
+                //std::cout<<pieceBuffer.size()<<std::endl;
                 buffer.clear();
                 pieceBuffer.clear();
                 pieceBuffer.clear();
@@ -102,6 +112,11 @@ void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerMan
                 exit(0);
             }
         }
+        current_size+=iterator->getLength();
+        progress=(float)(((float)current_size/(float)total_size)*100);
+
+        std::cout<<"\x1b[42m"<<(char)219;
+        //std::cout<<"Download progress is: "<<std::setprecision(5)<<progress<<"%";
         index++;
         iterator++;
         begin=0;
