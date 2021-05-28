@@ -22,5 +22,12 @@ public:
 class Downloader//create files of the torrent and fill them with pieces received from peer,
 {               //uses PeerManager to request and receive pieces
 public:
+    unsigned long int downloaded_bytes;
+    unsigned long int total_size;
+    bool work_flag;
     void download(int sockfd,class TorrentFile torrentFile,PeerManager peerManager);
+
+    Downloader();
 };
+
+void* progressBarThread(void* param);

@@ -13,3 +13,4 @@
 #include <sys/time.h>
 #include "TorrentFile.h"
 #include "PeerManager.h"
+#include <pthread.h>
