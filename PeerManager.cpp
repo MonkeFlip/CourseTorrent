@@ -69,7 +69,7 @@ void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerMan
     int index=0;//zero-based file index
     int begin=0;//zero-based byte offset within the file
     int length=BUF_SIZE;//length requested from the peer
-    std::vector<fileInfo>::const_iterator iterator=torrentFile.files.begin();
+    std::vector<FileInfo>::const_iterator iterator=torrentFile.files.begin();
     while(iterator!=torrentFile.files.end())
     {
         total_size+=iterator->getLength();
@@ -115,8 +115,8 @@ void Downloader::download(int sockfd,TorrentFile torrentFile,PeerManager peerMan
         current_size+=iterator->getLength();
         progress=(float)(((float)current_size/(float)total_size)*100);
 
-        std::cout<<"\x1b[42m"<<(char)219;
-        //std::cout<<"Download progress is: "<<std::setprecision(5)<<progress<<"%";
+        //std::cout<<"\x1b[42m"<<(char)219;
+        std::cout<<"Download progress is: "<<std::setprecision(5)<<progress<<"%"<<std::endl;
         index++;
         iterator++;
         begin=0;

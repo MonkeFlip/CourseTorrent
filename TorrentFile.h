@@ -2,7 +2,7 @@
 #include "headers.h"
 
 
-class peerInfo
+class PeerInfo
 {
 private:
     unsigned short int portNumber;
@@ -11,11 +11,11 @@ private:
 public:
     std::string ip;
     //constructors
-    peerInfo()
+    PeerInfo()
     {
         portNumber=0;//port number consists of 2 bytes
     }
-    peerInfo(unsigned  char* ipBuffer, unsigned  short int portNumberBuffer)
+    PeerInfo(unsigned  char* ipBuffer, unsigned  short int portNumberBuffer)
     {
         this->portNumber=portNumberBuffer;
     }
@@ -42,13 +42,13 @@ public:
     }
 };
 
-class fileInfo
+class FileInfo
 {
 private:
     std::string filename;
     unsigned long int length;//length of file in bytes
 public:
-    fileInfo();
+    FileInfo();
 
     void setFilename(const std::string &filename);
 
@@ -64,12 +64,12 @@ class TorrentFile
 public:
     std::string torrentName;//name of torrent-file
     unsigned char info_hash[20];//info hash of torrent-file
-    std::vector<fileInfo> files;//information about every file in torrent
+    std::vector<FileInfo> files;//information about every file in torrent
     std::string address;//address of torrent tracker
     //unsigned int pieceLength;//length of one piece
     //unsigned int pieceQuantity;//total amount of pieces in all files
 
-   void addFile(fileInfo);
+   void addFile(FileInfo);
 
    void extractFilesInfo(std::string downloadDirectory);
 
@@ -86,5 +86,6 @@ public:
     int findEndPos(char*, int);
 
     void displayFiles();//print information about all files of torrent
+
 
 };

@@ -1,5 +1,5 @@
 #include "TorrentFile.h"
-void TorrentFile::addFile(fileInfo file)
+void TorrentFile::addFile(FileInfo file)
 {
     this->files.push_back(file);
 }
@@ -7,7 +7,7 @@ void TorrentFile::addFile(fileInfo file)
 void TorrentFile::extractFilesInfo(std::string downloadDirectory)
 {
     int nameLength=0;
-    fileInfo fi;
+    FileInfo fi;
     std::ifstream file;
     file.open(this->torrentName, std::ifstream::binary);
     file.seekg(0, file.end);
@@ -157,7 +157,7 @@ void TorrentFile::setTorrentName(const std::string &torrentName) {
 
 TorrentFile::TorrentFile(const std::string &torrentName) : torrentName(torrentName) {}
 
-fileInfo::fileInfo() {}
+FileInfo::FileInfo() {}
 
 void TorrentFile::calculateInfoHashAndAddress() {
     std::ifstream file;
@@ -187,19 +187,19 @@ void TorrentFile::calculateInfoHashAndAddress() {
     }
 }
 
-void fileInfo::setFilename(const std::string &filename) {
-    fileInfo::filename = filename;
+void FileInfo::setFilename(const std::string &filename) {
+    FileInfo::filename = filename;
 }
 
-void fileInfo::setLength(unsigned long length) {
-    fileInfo::length = length;
+void FileInfo::setLength(unsigned long length) {
+    FileInfo::length = length;
 }
 
-const std::string &fileInfo::getFilename() const {
+const std::string &FileInfo::getFilename() const {
     return filename;
 }
 
-unsigned long fileInfo::getLength() const {
+unsigned long FileInfo::getLength() const {
     return length;
 }
 
@@ -288,7 +288,7 @@ int TorrentFile:: findEndPos(char* content,int fileLength)
 
 void TorrentFile::displayFiles()
 {
-    std::vector<fileInfo>::const_iterator iterator;
+    std::vector<FileInfo>::const_iterator iterator;
     iterator=this->files.begin();
     std::cout<<"List of files:"<<std::endl;
     std::ofstream list_of_files;
@@ -302,28 +302,28 @@ void TorrentFile::displayFiles()
     list_of_files.close();
 }
 
-bool peerInfo::isChoked() const {
+bool PeerInfo::isChoked() const {
     return choked;
 }
 
-bool peerInfo::isInterested() const {
+bool PeerInfo::isInterested() const {
     return interested;
 }
 
-void peerInfo::setChoked(bool choked) {
+void PeerInfo::setChoked(bool choked) {
     this->choked = choked;
 }
 
-void peerInfo::setInterested(bool interested) {
+void PeerInfo::setInterested(bool interested) {
     this->interested = interested;
 }
 
-const std::string &peerInfo::getIp() const {
+const std::string &PeerInfo::getIp() const {
     return ip;
 }
 
-void peerInfo::setIp(const std::string &ip) {
-    peerInfo::ip = ip;
+void PeerInfo::setIp(const std::string &ip) {
+    PeerInfo::ip = ip;
 }
 
 

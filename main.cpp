@@ -4,15 +4,15 @@
 
 void printHash(const unsigned char*);
 
-peerInfo* parseResponseInfo(std::string,peerInfo*,int&);
+PeerInfo* parseResponseInfo(std::string, PeerInfo*, int&);
 
 std::string urlEncode(const unsigned char*);
 size_t writeFunction(void*, size_t,size_t, std::string*);
-peerInfo* makeGetRequest(std::string,peerInfo*,int&);
+PeerInfo* makeGetRequest(std::string, PeerInfo*, int&);
 
 int main() {
     using namespace std;
-    //peerInfo* allPeers= nullptr;
+    //PeerInfo* allPeers= nullptr;
     int peersQuantity = 0;
     string completeUrl;
     int option = 0;
@@ -130,7 +130,7 @@ size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
     return size * nmemb;
 }
 
-peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& peersQuantity)
+PeerInfo* parseResponseInfo(std::string responseString, PeerInfo* allPeers, int& peersQuantity)
 {
     int pos=-1;
     unsigned char ip[4]={0};
@@ -152,7 +152,7 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
     std::cout<<"Position is: "<<pos<<std::endl;
     char mem;
     peersQuantity=(responseString.size()-pos)/6;
-    allPeers=new peerInfo[peersQuantity];
+    allPeers=new PeerInfo[peersQuantity];
     for(int iteration=0;iteration<peersQuantity;iteration++) //process all 6-byte strings from current position till the end to extract ip and port number
     {
         int check=0;
@@ -204,7 +204,7 @@ peerInfo* parseResponseInfo(std::string responseString,peerInfo* allPeers,int& p
     return allPeers;
 }
 
-peerInfo* makeGetRequest(std::string url,peerInfo* allPeers,int& peersQuantity)
+PeerInfo* makeGetRequest(std::string url, PeerInfo* allPeers, int& peersQuantity)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     auto curl=curl_easy_init();

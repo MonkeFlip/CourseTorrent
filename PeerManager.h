@@ -5,7 +5,7 @@ class PeerManager//controls peer connection, state and messages
 {
 private:
 public:
-    class peerInfo* allPeers;
+    class PeerInfo* allPeers;
     PeerManager(){
         this->allPeers= nullptr;
     }
