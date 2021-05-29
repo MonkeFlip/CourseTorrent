@@ -66,18 +66,43 @@ void* progressBarThread(void *param)
     int progress_mem=0;
     float result=0;
     Downloader* mem=(Downloader*)param;
+//    for(int i=0;i<100;i++)
+//    {
+//        std::cout.flush();
+//        std::cout<<"\x1b[47m"<<" ";
+//    }
+
     while(mem->work_flag)
     {
         //sleep(2);
         result=(float)mem->downloaded_bytes/(float)mem->total_size*100;
         if(((int)result-progress_mem)>0)
         {
-            //progress_mem=(int)result;
-            for(int i=0;i<(int)result-progress_mem;i++)
+            std::cout.flush();
+            std::cout<<"\r";
+            std::cout.flush();
+            std::cout<<"[";
+            for(int i=0;i<(int)(result/2);i++)
             {
                 std::cout.flush();
-                std::cout<<"\x1b[42m"<<"F";
+                std::cout<<"\x1b[42m"<<" "<<"\x1b[0m";
             }
+            for(int i=0;i<(int)((100-result)/2);i++)
+            {
+                std::cout.flush();
+                std::cout<<" ";
+            }
+            std::cout.flush();
+            std::cout<<"] "<<(int)result<<"%";
+            std::cout.flush();
+            //progress_mem=(int)result;
+            //std::cout.flush();
+            //std::cout<<"["<<"\x1b[42m"<<std::string(" ",(int)result)<<"\x1b[0m"<<"]"<<std::endl<<" "<<(int)result;
+//            for(int i=0;i<(int)result-progress_mem;i++)
+//            {
+//                std::cout.flush();
+//                std::cout<<"\x1b[42m"<<" ";
+//            }
             progress_mem=(int)result;
         }
         //std::cout.flush();
@@ -89,6 +114,7 @@ void* progressBarThread(void *param)
 //        }
         //std::cout<<"\r"<<result<<"%";
     }
+    std::cout<<std::endl;
     pthread_exit(0);
 }
 
@@ -177,7 +203,11 @@ int PeerManager::makeHandshake(TorrentFile torrentFile)
     std::string handshakeBuffer;
     handshakeBuffer+=19;
     handshakeBuffer+="BitTorrent protocol";
-    handshakeBuffer+=flags;
+    handshakeBuffer+=std::string("0",8);
+    for(int i=20;i<28;i++)
+    {
+        handshakeBuffer[i]=0;
+    }
     handshakeBuffer+=(char*)torrentFile.info_hash;
     handshakeBuffer+="HAHA-0142421214125A-";
     sockaddr_in addr;
@@ -189,6 +219,7 @@ int PeerManager::makeHandshake(TorrentFile torrentFile)
     addr.sin_port= htons(6881);
     sockfd=socket(AF_INET,SOCK_DGRAM,0);
     connect(sockfd,(struct sockaddr*)&addr,sizeof(addr));
+    write(sockfd,handshakeBuffer.c_str(),handshakeBuffer.size());
     return sockfd;
 }
 

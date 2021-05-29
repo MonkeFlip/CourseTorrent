@@ -46,7 +46,7 @@ void TorrentFile::extractFilesInfo(std::string downloadDirectory)
     mkdir(mainDirectory.c_str(),0777);
     mainDirectory+='/';
     pathBuffer=mainDirectory;
-    std::cout<<"Main directory: "<<pathBuffer<<std::endl;
+    //std::cout<<"Main directory: "<<pathBuffer<<std::endl;
     positionInFile=0;
     positionInFile=fileContent.find("files");
     if(positionInFile!=std::string::npos)
@@ -73,7 +73,7 @@ void TorrentFile::extractFilesInfo(std::string downloadDirectory)
             buffer.clear();
             positionInFile++;
             bool nameEnd = false;
-            std::cout<<"start of name search:"<<std::endl;
+            //std::cout<<"start of name search:"<<std::endl;
             while (!nameEnd) {
                 //std::cout<<"Start of name search: "<<std::endl;
                 while (nameLength > 0) {
@@ -81,7 +81,7 @@ void TorrentFile::extractFilesInfo(std::string downloadDirectory)
                     positionInFile++;
                     nameLength--;
                 }
-                std::cout<<"buffer: "<<buffer<<std::endl;
+                //std::cout<<"buffer: "<<buffer<<std::endl;
                 //pathBuffer+=buffer+'/';
                 if (isalpha(fileContent[positionInFile])) {
                     nameEnd = true;
@@ -108,7 +108,7 @@ void TorrentFile::extractFilesInfo(std::string downloadDirectory)
             pathBuffer.erase(pathBuffer.size()-1,1);
             fi.setFilename(pathBuffer);
             buffer.clear();
-            std::cout<<"Path buffer: "<<pathBuffer<<std::endl;
+            //std::cout<<"Path buffer: "<<pathBuffer<<std::endl;
             pathBuffer.clear();
             pathBuffer=mainDirectory;
             this->addFile(fi);
@@ -138,6 +138,7 @@ void TorrentFile::extractFilesInfo(std::string downloadDirectory)
         positionInFile++;//skip ";"
         nameLength=stoi(buffer);
         buffer.clear();
+        buffer=mainDirectory;
         while(nameLength>0)
         {
             buffer+=fileContent[positionInFile];
@@ -178,9 +179,9 @@ void TorrentFile::calculateInfoHashAndAddress() {
         file.read((char *) fileContentBuffer, fileLength);//get content of file in buffer
         //this->extractPieceLengthAndQuantity(fileContentBuffer);
         //std::cout<<"File content: "<<std::endl;
-        std::cout<<fileContentBuffer<<std::endl;
+        //std::cout<<fileContentBuffer<<std::endl;
         this->address = getAddress(fileContentBuffer, fileLength);
-        std::cout << this->address << std::endl;
+        //std::cout << this->address << std::endl;
         getHash(fileContentBuffer, this->info_hash, fileLength, &file);
         file.close();
         free(fileContentBuffer);
@@ -290,13 +291,13 @@ void TorrentFile::displayFiles()
 {
     std::vector<FileInfo>::const_iterator iterator;
     iterator=this->files.begin();
-    std::cout<<"List of files:"<<std::endl;
+    //std::cout<<"List of files:"<<std::endl;
     std::ofstream list_of_files;
     list_of_files.open("sabaton.txt");
     while(iterator!=this->files.end())
     {
         list_of_files<<iterator->getFilename()<<'\n';
-        std::cout<<iterator->getFilename()<<" "<<iterator->getLength()<<std::endl;
+        //std::cout<<iterator->getFilename()<<" "<<iterator->getLength()<<std::endl;
         iterator++;
     }
     list_of_files.close();

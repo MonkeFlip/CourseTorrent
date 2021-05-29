@@ -70,12 +70,12 @@ int main() {
             PeerManager peerManager;
             string urlEncodedHash;
             urlEncodedHash = urlEncode(torrentFile.info_hash);
-            cout << urlEncodedHash << endl;
-            printHash(torrentFile.info_hash);
+            //cout << urlEncodedHash << endl;
+            //printHash(torrentFile.info_hash);
             completeUrl += torrentFile.address + "?info_hash=" + urlEncodedHash + "&uploaded=0" + "&downloaded=0" +
                     "&port=6881" + "&left=1239";
 
-            cout << "Request url: " << completeUrl << endl;
+            //cout << "Request url: " << completeUrl << endl;
 
             peerManager.allPeers = makeGetRequest(completeUrl, peerManager.allPeers, peersQuantity);
             int sockfd = 0;
@@ -149,7 +149,7 @@ PeerInfo* parseResponseInfo(std::string responseString, PeerInfo* allPeers, int&
             }
         }
     }
-    std::cout<<"Position is: "<<pos<<std::endl;
+    //std::cout<<"Position is: "<<pos<<std::endl;
     char mem;
     peersQuantity=(responseString.size()-pos)/6;
     allPeers=new PeerInfo[peersQuantity];
@@ -194,13 +194,13 @@ PeerInfo* parseResponseInfo(std::string responseString, PeerInfo* allPeers, int&
         allPeers[iteration].setPortNumber(portNumber);
         pos+=6;
     }
-    std::cout<<"Peers quantity: "<<peersQuantity<<std::endl;
-    std::cout<<"Peers info:"<<std::endl;
-    for(int i=0;i<peersQuantity;i++)
+    //std::cout<<"Peers quantity: "<<peersQuantity<<std::endl;
+    //std::cout<<"Peers info:"<<std::endl;
+    /*for(int i=0;i<peersQuantity;i++)
     {
         std::cout<<"Ip: "<<allPeers[i].ip;
         std::cout<<"    port: "<<allPeers[i].getPortNumber()<<std::endl;
-    }
+    }*/
     return allPeers;
 }
 
@@ -230,13 +230,13 @@ PeerInfo* makeGetRequest(std::string url, PeerInfo* allPeers, int& peersQuantity
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
         curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &responseUrl);
-        std::cout<<"ResponseUrl: "<<responseUrl<<std::endl;
-        std::cout<<"Response code: "<<response_code<<std::endl;
-        std::cout<<"Elapsed: "<<elapsed<<std::endl;
+        //std::cout<<"ResponseUrl: "<<responseUrl<<std::endl;
+        //std::cout<<"Response code: "<<response_code<<std::endl;
+        //std::cout<<"Elapsed: "<<elapsed<<std::endl;
         curl_easy_cleanup(curl);
         curl = NULL;
-        std::cout<<"Response string: "<<std::endl;
-        std::cout<<response_string<<std::endl;
+        //std::cout<<"Response string: "<<std::endl;
+        //std::cout<<response_string<<std::endl;
         //std::cout<<"Header string: "<<header_string<<std::endl;
         allPeers=parseResponseInfo(response_string,allPeers,peersQuantity);
     }
